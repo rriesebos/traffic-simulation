@@ -39,7 +39,7 @@ class Vehicle:
         self.position += delta_t * self.velocity + 0.5 * self.acceleration * delta_t ** 2
 
     def update_velocity(self, delta_t):
-        self.velocity += max(0, delta_t * self.acceleration)
+        self.velocity = max(0, self.velocity + delta_t * self.acceleration)
 
     def update_acceleration(self):
         self.acceleration = self.traffic_model.calculate_acceleration(self)
