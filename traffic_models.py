@@ -19,6 +19,8 @@ class IDM:
     
             desired_gap = self.MINIMUM_GAP + max(0, desired_distance)
             acceleration_interaction = (desired_gap / max(vehicle.gap, self.MINIMUM_GAP)) ** 2
+            if vehicle.gap >= desired_gap:
+                acceleration_interaction = 0
         else:
             # No car in front, so there is no "interaction" variable needed
             acceleration_interaction = 0

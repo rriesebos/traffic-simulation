@@ -41,7 +41,7 @@ def main():
         accelerations.append(accelerations_temp)
         positions.append(positions_temp)
         gap.append(gap_temp)
-
+        
     plt.plot(time_range, velocities)
     plt.show()
 
@@ -53,5 +53,6 @@ def main():
 
     plt.plot(time_range, gap)
     plt.show()
+
 
 main()
