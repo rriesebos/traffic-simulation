@@ -42,10 +42,6 @@ class Vehicle:
         self.velocity += max(0, delta_t * self.acceleration)
 
     def update_acceleration(self):
-        # If this vehicle is the leader, do not update the acceleration
-        if self.next_vehicle is None:
-            return
-
         self.acceleration = self.traffic_model.calculate_acceleration(self)
 
     def update_gap(self):
