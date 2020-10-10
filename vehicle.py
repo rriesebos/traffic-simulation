@@ -36,7 +36,7 @@ class Vehicle:
         self.next_vehicle = next_vehicle
 
     def update_position(self, delta_t):
-        self.position += delta_t * self.velocity + 0.5 * self.acceleration * delta_t ** 2
+        self.position += delta_t * self.velocity
 
     def update_velocity(self, delta_t):
         self.velocity = max(0, self.velocity + delta_t * self.acceleration)
