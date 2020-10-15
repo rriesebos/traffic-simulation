@@ -1,4 +1,4 @@
-from traffic_models import IDM
+from traffic_models import *
 from vehicle import *
 
 import numpy as np

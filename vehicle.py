@@ -41,8 +41,8 @@ class Vehicle:
     def update_velocity(self, delta_t):
         self.velocity = max(0, self.velocity + delta_t * self.acceleration)
 
-    def update_acceleration(self):
-        self.acceleration = self.traffic_model.calculate_acceleration(self)
+    def update_acceleration(self, delta_t):
+        self.acceleration = self.traffic_model.calculate_acceleration(self, delta_t)
 
     def update_gap(self):
         if self.next_vehicle is None:
@@ -52,7 +52,7 @@ class Vehicle:
 
     def update(self, delta_t):
         self.update_gap()
-        self.update_acceleration()
+        self.update_acceleration(delta_t)
         self.update_velocity(delta_t)
         self.update_position(delta_t)
 
