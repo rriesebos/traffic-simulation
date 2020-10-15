@@ -33,7 +33,7 @@ class IDM:
         return new_acceleration
 
 
-class GippsModel:
+class Gipps:
     # Minimum gap between two vehicles [m]
     MINIMUM_GAP = 2
 
