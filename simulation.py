@@ -13,9 +13,11 @@ def main():
     intelligent_driver_model = IDM()
 
     # TODO: Change dummy data to randomly? generated list
-    car_1 = Car(position=50, velocity=100 / 3.6, traffic_model=intelligent_driver_model)
-    car_2 = Car(position=20, velocity=80 / 3.6, traffic_model=intelligent_driver_model, next_vehicle=car_1)
-    truck_1 = Truck(position=10, velocity=60 / 3.6, traffic_model=intelligent_driver_model, next_vehicle=car_2)
+    car_1 = Car(position=50, velocity=100 / 3.6, acceleration=0, traffic_model=intelligent_driver_model)
+    car_2 = Car(position=20, velocity=80 / 3.6, acceleration=0.18, traffic_model=intelligent_driver_model,
+                next_vehicle=car_1)
+    truck_1 = Truck(position=10, velocity=60 / 3.6, acceleration=0.21, traffic_model=intelligent_driver_model,
+                    next_vehicle=car_2)
     vehicle_list = [car_1, car_2, truck_1]
 
     velocities = []
@@ -31,11 +33,11 @@ def main():
         gap_temp = []
 
         for vehicle in vehicle_list:
-            vehicle.update(delta_t=TIME_STEP)
             velocities_temp.append(vehicle.velocity * 3.6)
             accelerations_temp.append(vehicle.acceleration)
             positions_temp.append(vehicle.position)
             gap_temp.append(vehicle.gap)
+            vehicle.update(delta_t=TIME_STEP)
 
         velocities.append(velocities_temp)
         accelerations.append(accelerations_temp)

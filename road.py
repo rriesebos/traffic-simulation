@@ -24,6 +24,10 @@ class Road:
 
     def change_lanes(self):
         for i, vehicle in enumerate(self.vehicles):
+            if vehicle.lane_change_model is None:
+                continue
+
+            # Note: lanes are indexed from left to right
             new_lanes = [vehicle.lane - 1, vehicle.lane + 1]
             for new_lane in new_lanes:
                 # Check if the new lane is valid
@@ -34,8 +38,16 @@ class Road:
                 old_prev_vehicle = self.get_prev_vehicle(vehicle.lane, i)
                 new_prev_vehicle = self.get_prev_vehicle(new_lane, i)
 
-                if vehicle.will_change_lane(new_next_vehicle, old_prev_vehicle, new_prev_vehicle):
+                if vehicle.will_change_lane(new_lane, new_next_vehicle, old_prev_vehicle, new_prev_vehicle,
+                                            self.time_step):
+                    if old_prev_vehicle is not None:
+                        old_prev_vehicle.next_vehicle = vehicle.next_vehicle
+
                     vehicle.change_lane(new_next_vehicle, new_lane)
+
+                    if new_prev_vehicle is not None:
+                        new_prev_vehicle.next_vehicle = vehicle
+
                     break
 
     def update_positions_velocities(self):

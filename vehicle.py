@@ -21,14 +21,17 @@ class Vehicle:
         traffic_model: traffic model used to update the acceleration
         vehicle_parameters: the length, desired_velocity, desired_time_headway, max_acceleration, and
                             comfortable_deceleration parameters of the vehicle in the given order
+        lane_change_model: lane change model used to determine whether the car will change lanes
         next_vehicle: next vehicle on the road, the vehicle in front of this vehicle
+        lane: lane the vehicle is currently on
     """
-    def __init__(self, position, velocity, traffic_model, vehicle_parameters: VehicleParameters,
+    def __init__(self, position, velocity, acceleration, traffic_model, vehicle_parameters: VehicleParameters,
                  lane_change_model=None, next_vehicle=None, lane=0):
         self.position = position
         self.velocity = velocity
-        self.acceleration = 0
-        self.gap = 0
+
+        self.gap = self.calculate_gap(next_vehicle)
+        self.acceleration = acceleration
 
         self.traffic_model = traffic_model
         self.lane_change_model = lane_change_model
@@ -45,23 +48,26 @@ class Vehicle:
         self.velocity = max(0, self.velocity + delta_t * self.acceleration)
 
     def update_acceleration(self, delta_t):
-        self.acceleration = self.traffic_model.calculate_acceleration(self, delta_t)
+        self.update_gap()
+        self.acceleration = self.traffic_model.calculate_acceleration(self, self.next_vehicle, delta_t)
+
+    def calculate_gap(self, next_vehicle):
+        if next_vehicle is None:
+            return 0
+
+        return next_vehicle.position - self.position - next_vehicle.length
 
     def update_gap(self):
-        if self.next_vehicle is None:
-            return self.gap
-
-        self.gap = self.next_vehicle.position - self.position - self.next_vehicle.length
+        self.gap = self.calculate_gap(self.next_vehicle)
 
     def update(self, delta_t):
-        self.update_gap()
         self.update_acceleration(delta_t)
         self.update_velocity(delta_t)
         self.update_position(delta_t)
 
-    def will_change_lane(self, new_next_vehicle, old_prev_vehicle, new_prev_vehicle):
-        return self.lane_change_model.will_change_lane(self.next_vehicle, new_next_vehicle,
-                                                       old_prev_vehicle, new_prev_vehicle)
+    def will_change_lane(self, new_lane, new_next_vehicle, old_prev_vehicle, new_prev_vehicle, delta_t):
+        return self.lane_change_model.will_change_lane(self, new_lane, self.next_vehicle, new_next_vehicle,
+                                                       old_prev_vehicle, new_prev_vehicle, delta_t)
 
     def change_lane(self, new_next_vehicle, new_lane):
         self.next_vehicle = new_next_vehicle
@@ -77,8 +83,8 @@ class Car(Vehicle):
         comfortable_deceleration=3.0
     )
 
-    def __init__(self, position, velocity, traffic_model, lane_change_model=None, next_vehicle=None, lane=0):
-        super().__init__(position, velocity, traffic_model, self.CAR_PARAMETERS,
+    def __init__(self, position, velocity, acceleration, traffic_model, lane_change_model=None, next_vehicle=None, lane=0):
+        super().__init__(position, velocity, acceleration, traffic_model, self.CAR_PARAMETERS,
                          lane_change_model, next_vehicle, lane)
 
 
@@ -91,8 +97,8 @@ class Truck(Vehicle):
         comfortable_deceleration=2.0
     )
 
-    def __init__(self, position, velocity, traffic_model, lane_change_model=None, next_vehicle=None, lane=0):
-        super().__init__(position, velocity, traffic_model, self.TRUCK_PARAMETERS,
+    def __init__(self, position, velocity, acceleration, traffic_model, lane_change_model=None, next_vehicle=None, lane=0):
+        super().__init__(position, velocity, acceleration, traffic_model, self.TRUCK_PARAMETERS,
                          lane_change_model, next_vehicle, lane)
 
 
@@ -106,8 +112,8 @@ class AggressiveCar(Vehicle):
         comfortable_deceleration=5.0
     )
 
-    def __init__(self, position, velocity, traffic_model, lane_change_model=None, next_vehicle=None, lane=0):
-        super().__init__(position, velocity, traffic_model, self.AGGRESSIVE_CAR_PARAMETERS,
+    def __init__(self, position, velocity, acceleration, traffic_model, lane_change_model=None, next_vehicle=None, lane=0):
+        super().__init__(position, velocity, acceleration, traffic_model, self.AGGRESSIVE_CAR_PARAMETERS,
                          lane_change_model, next_vehicle, lane)
 
 
@@ -121,6 +127,6 @@ class CarefulCar(Vehicle):
         comfortable_deceleration=2.0
     )
 
-    def __init__(self, position, velocity, traffic_model, lane_change_model=None, next_vehicle=None, lane=0):
-        super().__init__(position, velocity, traffic_model, self.CAREFUL_CAR_PARAMETERS,
+    def __init__(self, position, velocity, acceleration, traffic_model, lane_change_model=None, next_vehicle=None, lane=0):
+        super().__init__(position, velocity, acceleration, traffic_model, self.CAREFUL_CAR_PARAMETERS,
                          lane_change_model, next_vehicle, lane)

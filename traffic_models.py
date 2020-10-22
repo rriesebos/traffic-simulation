@@ -9,16 +9,17 @@ class IDM:
     # Exponent to control decrease of acceleration as desired velocity is approached
     ACCELERATION_EXPONENT = 4
 
-    def calculate_acceleration(self, vehicle: Vehicle, _):
-        leader = vehicle.next_vehicle
+    def calculate_acceleration(self, vehicle: Vehicle, next_vehicle: Vehicle, _):
+        if vehicle is None:
+            return 0
 
-        if leader is not None:
+        if next_vehicle is not None:
             # If there is a vehicle in front, take it in to account when calculating the acceleration
-            delta_velocity = vehicle.velocity - leader.velocity
+            delta_velocity = vehicle.velocity - next_vehicle.velocity
             desired_distance = ((vehicle.velocity * vehicle.desired_time_headway)
                                 + (vehicle.velocity * delta_velocity)
                                 / (2 * math.sqrt(vehicle.max_acceleration * vehicle.comfortable_deceleration)))
-    
+
             desired_gap = self.MINIMUM_GAP + max(0, desired_distance)
             acceleration_interaction = (desired_gap / max(vehicle.gap, self.MINIMUM_GAP)) ** 2
             if vehicle.gap >= desired_gap:
@@ -26,7 +27,7 @@ class IDM:
         else:
             # No car in front, so there is no "interaction" variable needed
             acceleration_interaction = 0
-        
+
         acceleration_free_road = 1 - (vehicle.velocity / vehicle.desired_velocity) ** self.ACCELERATION_EXPONENT
         new_acceleration = vehicle.max_acceleration * (acceleration_free_road - acceleration_interaction)
 
@@ -37,14 +38,15 @@ class Gipps:
     # Minimum gap between two vehicles [m]
     MINIMUM_GAP = 2
 
-    def calculate_acceleration(self, vehicle: Vehicle, delta_t):
-        leader = vehicle.next_vehicle
+    def calculate_acceleration(self, vehicle: Vehicle, next_vehicle: Vehicle, delta_t):
+        if vehicle is None:
+            return 0
 
-        if leader is None:
+        if next_vehicle is None:
             return 1 - (vehicle.velocity / vehicle.desired_velocity)
 
         velocity_safe = ((-vehicle.comfortable_deceleration * delta_t)
-                         + (math.sqrt(vehicle.comfortable_deceleration ** 2 * delta_t ** 2 + leader.velocity ** 2
+                         + (math.sqrt(vehicle.comfortable_deceleration ** 2 * delta_t ** 2 + next_vehicle.velocity ** 2
                                       + 2 * vehicle.comfortable_deceleration * (vehicle.gap - self.MINIMUM_GAP))))
 
         new_velocity = min(velocity_safe, min(vehicle.velocity + vehicle.max_acceleration * delta_t,
