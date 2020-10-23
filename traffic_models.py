@@ -1,5 +1,5 @@
 import math
-from vehicle import Vehicle
+from vehicle import Vehicle, Obstacle
 
 
 class IDM:
@@ -9,8 +9,8 @@ class IDM:
     # Exponent to control decrease of acceleration as desired velocity is approached
     ACCELERATION_EXPONENT = 4
 
-    def calculate_acceleration(self, vehicle: Vehicle, next_vehicle: Vehicle, _):
-        if vehicle is None:
+    def calculate_acceleration(self, vehicle: Vehicle, next_vehicle: Vehicle):
+        if vehicle is None or isinstance(vehicle, Obstacle):
             return 0
 
         if next_vehicle is not None:
@@ -38,19 +38,22 @@ class Gipps:
     # Minimum gap between two vehicles [m]
     MINIMUM_GAP = 2
 
-    def calculate_acceleration(self, vehicle: Vehicle, next_vehicle: Vehicle, delta_t):
-        if vehicle is None:
+    def __init__(self, delta_t):
+        self.delta_t = delta_t
+
+    def calculate_acceleration(self, vehicle: Vehicle, next_vehicle: Vehicle):
+        if vehicle is None or isinstance(vehicle, Obstacle):
             return 0
 
         if next_vehicle is None:
             return 1 - (vehicle.velocity / vehicle.desired_velocity)
 
-        velocity_safe = ((-vehicle.comfortable_deceleration * delta_t)
-                         + (math.sqrt(vehicle.comfortable_deceleration ** 2 * delta_t ** 2 + next_vehicle.velocity ** 2
+        velocity_safe = ((-vehicle.comfortable_deceleration * self.delta_t)
+                         + (math.sqrt(vehicle.comfortable_deceleration ** 2 * self.delta_t ** 2 + next_vehicle.velocity ** 2
                                       + 2 * vehicle.comfortable_deceleration * (vehicle.gap - self.MINIMUM_GAP))))
 
-        new_velocity = min(velocity_safe, min(vehicle.velocity + vehicle.max_acceleration * delta_t,
+        new_velocity = min(velocity_safe, min(vehicle.velocity + vehicle.max_acceleration * self.delta_t,
                                               vehicle.desired_velocity))
-        new_acceleration = (new_velocity - vehicle.velocity) / delta_t
+        new_acceleration = (new_velocity - vehicle.velocity) / self.delta_t
 
         return new_acceleration

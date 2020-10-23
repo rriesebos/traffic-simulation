@@ -7,7 +7,7 @@ class MOBIL:
 
     """
     Args:
-        politeness_factor: factor on how polite leader vehicles are
+        politeness_factor: factor of how polite leader vehicles are
         right_bias: bias to drive right [m/s^2]
     """
     def __init__(self, politeness_factor=DEFAULT_POLITENESS_FACTOR, right_bias=DEFAULT_RIGHT_BIAS):
@@ -24,7 +24,7 @@ class MOBIL:
                 return False
 
             # Safety criterion: lane changing should not lead to dangerous deceleration
-            new_acc_new_prev_vehicle = traffic_model.calculate_acceleration(new_prev_vehicle, vehicle, delta_t)
+            new_acc_new_prev_vehicle = traffic_model.calculate_acceleration(new_prev_vehicle, vehicle)
             if new_acc_new_prev_vehicle < -new_prev_vehicle.comfortable_deceleration:
                 return False
 
@@ -33,15 +33,15 @@ class MOBIL:
             return False
 
         # Safety criterion: lane changing should not lead to dangerous deceleration
-        new_acc = traffic_model.calculate_acceleration(vehicle, new_next_vehicle, delta_t)
+        new_acc = traffic_model.calculate_acceleration(vehicle, new_next_vehicle)
         if new_acc < -vehicle.comfortable_deceleration:
             return False
 
         # Incentive criterion: lane changes should be net beneficial
         acceleration_change = new_acc - vehicle.acceleration
-        acceleration_change_old_prev = (traffic_model.calculate_acceleration(old_prev_vehicle, old_next_vehicle, delta_t)
+        acceleration_change_old_prev = (traffic_model.calculate_acceleration(old_prev_vehicle, old_next_vehicle)
                                         - 0 if old_prev_vehicle is None else old_prev_vehicle.acceleration)
-        acceleration_change_new_prev = (traffic_model.calculate_acceleration(new_prev_vehicle, vehicle, delta_t)
+        acceleration_change_new_prev = (traffic_model.calculate_acceleration(new_prev_vehicle, vehicle)
                                         - 0 if new_prev_vehicle is None else new_prev_vehicle.acceleration)
 
         is_right = int(new_lane > vehicle.lane)
