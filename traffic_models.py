@@ -1,35 +1,59 @@
 import math
+from vehicle import Vehicle, Obstacle
 
 
 class IDM:
-    # Desired velocity of a car [m/s]
-    DESIRED_VELOCITY = 100 / 3.6
-
-    # Desired time gap between two cars [s]
-    DESIRED_TIME_GAP = 1
-
-    # Minimum gap between two cars [m], 1000+ meters models free road
+    # Minimum gap between two vehicles [m], 1000+ meters models free road
     MINIMUM_GAP = 2
 
     # Exponent to control decrease of acceleration as desired velocity is approached
     ACCELERATION_EXPONENT = 4
 
-    # Maximum acceleration [m/s^2]
-    MAX_ACCELERATION = 1
+    def calculate_acceleration(self, vehicle: Vehicle, next_vehicle: Vehicle):
+        if vehicle is None or isinstance(vehicle, Obstacle):
+            return 0
 
-    # Comfortable deceleration (braking) [m/s^2]
-    COMFORTABLE_DECELERATION = 1.5
+        if next_vehicle is not None:
+            # If there is a vehicle in front, take it in to account when calculating the acceleration
+            delta_velocity = vehicle.velocity - next_vehicle.velocity
+            desired_distance = ((vehicle.velocity * vehicle.desired_time_headway)
+                                + (vehicle.velocity * delta_velocity)
+                                / (2 * math.sqrt(vehicle.max_acceleration * vehicle.comfortable_deceleration)))
 
-    def calculate_acceleration(self, current_gap, velocity, velocity_leader):
-        delta_velocity = velocity - velocity_leader
-        desired_distance = ((velocity * self.DESIRED_TIME_GAP)
-                            + (velocity * delta_velocity)
-                            / (2 * math.sqrt(self.MAX_ACCELERATION * self.COMFORTABLE_DECELERATION)))
+            desired_gap = self.MINIMUM_GAP + max(0, desired_distance)
+            acceleration_interaction = (desired_gap / max(vehicle.gap, self.MINIMUM_GAP)) ** 2
+            if vehicle.gap >= desired_gap:
+                acceleration_interaction = 0
+        else:
+            # No car in front, so there is no "interaction" variable needed
+            acceleration_interaction = 0
 
-        desired_gap = self.MINIMUM_GAP + max(0, desired_distance)
+        acceleration_free_road = 1 - (vehicle.velocity / vehicle.desired_velocity) ** self.ACCELERATION_EXPONENT
+        new_acceleration = vehicle.max_acceleration * (acceleration_free_road - acceleration_interaction)
 
-        acceleration_free_road = 1 - (velocity / self.DESIRED_VELOCITY) ** self.ACCELERATION_EXPONENT
-        acceleration_interaction = (desired_gap / max(current_gap, self.MINIMUM_GAP)) ** 2
-        new_acceleration = self.MAX_ACCELERATION * (acceleration_free_road - acceleration_interaction)
+        return new_acceleration
+
+
+class Gipps:
+    # Minimum gap between two vehicles [m]
+    MINIMUM_GAP = 2
+
+    def __init__(self, delta_t):
+        self.delta_t = delta_t
+
+    def calculate_acceleration(self, vehicle: Vehicle, next_vehicle: Vehicle):
+        if vehicle is None or isinstance(vehicle, Obstacle):
+            return 0
+
+        if next_vehicle is None:
+            return 1 - (vehicle.velocity / vehicle.desired_velocity)
+
+        velocity_safe = ((-vehicle.comfortable_deceleration * self.delta_t)
+                         + (math.sqrt(vehicle.comfortable_deceleration ** 2 * self.delta_t ** 2 + next_vehicle.velocity ** 2
+                                      + 2 * vehicle.comfortable_deceleration * (vehicle.gap - self.MINIMUM_GAP))))
+
+        new_velocity = min(velocity_safe, min(vehicle.velocity + vehicle.max_acceleration * self.delta_t,
+                                              vehicle.desired_velocity))
+        new_acceleration = (new_velocity - vehicle.velocity) / self.delta_t
 
         return new_acceleration
