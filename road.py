@@ -184,8 +184,16 @@ class Road:
         obstacle.lane = lane
         obstacle.position = at_position
 
+        if self.vehicles:
+            next_vehicle = self.vehicles[0]
+            for i, vehicle in enumerate(self.vehicles):
+                if vehicle.position < at_position and vehicle.lane == lane:
+                    vehicle.next_vehicle = obstacle
+                    vehicle.update_gap()
+                    next_vehicle.prev_vehicle = obstacle
+                    break
+
+                next_vehicle = vehicle
+
         self.vehicles.append(obstacle)
-
-        # if self.vehicles:
-
         self.sort_vehicles()

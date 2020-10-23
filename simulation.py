@@ -1,24 +1,27 @@
 from traffic_models import *
 from vehicle import *
+from road import *
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 TIME_STEP = 0.5
-MAX_TIME = 100
+MAX_TIME = 600
 
 
 def main():
     intelligent_driver_model = IDM()
 
-    # TODO: Change dummy data to randomly? generated list
     car_1 = Car(position=50, velocity=100 / 3.6, traffic_model=intelligent_driver_model)
     car_2 = Car(position=20, velocity=80 / 3.6, traffic_model=intelligent_driver_model,
                 next_vehicle=car_1)
     truck_1 = Truck(position=10, velocity=60 / 3.6, traffic_model=intelligent_driver_model,
                     next_vehicle=car_2)
     vehicle_list = [car_1, car_2, truck_1]
+
+    road = Road(length=100000, num_lanes=1, vehicles=vehicle_list, time_step=TIME_STEP)
+    road.add_obstacle(0, 5000)
 
     velocities = []
     accelerations = []
@@ -32,18 +35,22 @@ def main():
         positions_temp = []
         gap_temp = []
 
-        for vehicle in vehicle_list:
+        for vehicle in road.vehicles:
+            if isinstance(vehicle, Obstacle):
+                continue
+
             velocities_temp.append(vehicle.velocity * 3.6)
             accelerations_temp.append(vehicle.acceleration)
             positions_temp.append(vehicle.position)
             gap_temp.append(vehicle.gap)
-            vehicle.update(delta_t=TIME_STEP)
 
         velocities.append(velocities_temp)
         accelerations.append(accelerations_temp)
         positions.append(positions_temp)
         gap.append(gap_temp)
-        
+
+        road.update()
+
     plt.plot(time_range, velocities)
     plt.show()
 
