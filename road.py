@@ -63,8 +63,7 @@ class Road:
                 new_next_vehicle = self.get_next_vehicle(new_lane, i)
                 new_prev_vehicle = self.get_prev_vehicle(new_lane, i)
 
-                if vehicle.will_change_lane(new_lane, new_next_vehicle, new_prev_vehicle,
-                                            self.time_step):
+                if vehicle.will_change_lane(new_lane, new_next_vehicle, new_prev_vehicle, self.time_step):
                     if vehicle.prev_vehicle is not None:
                         vehicle.prev_vehicle.next_vehicle = vehicle.next_vehicle
 
@@ -185,15 +184,16 @@ class Road:
         obstacle.position = at_position
 
         if self.vehicles:
-            next_vehicle = self.vehicles[0]
             for i, vehicle in enumerate(self.vehicles):
                 if vehicle.position < at_position and vehicle.lane == lane:
-                    vehicle.next_vehicle = obstacle
-                    vehicle.update_gap()
-                    next_vehicle.prev_vehicle = obstacle
-                    break
+                    next_vehicle = vehicle.next_vehicle
+                    if next_vehicle is not None:
+                        next_vehicle.prev_vehicle = obstacle
 
-                next_vehicle = vehicle
+                    vehicle.next_vehicle = obstacle
+                    obstacle.prev_vehicle = vehicle
+                    vehicle.update_gap()
+                    break
 
         self.vehicles.append(obstacle)
         self.sort_vehicles()
