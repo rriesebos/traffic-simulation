@@ -49,8 +49,9 @@ class Gipps:
             return 1 - (vehicle.velocity / vehicle.desired_velocity)
 
         velocity_safe = ((-vehicle.comfortable_deceleration * self.delta_t)
-                         + (math.sqrt(vehicle.comfortable_deceleration ** 2 * self.delta_t ** 2 + next_vehicle.velocity ** 2
-                                      + 2 * vehicle.comfortable_deceleration * (vehicle.gap - self.MINIMUM_GAP))))
+                         + (math.sqrt(vehicle.comfortable_deceleration ** 2 * self.delta_t ** 2
+                                      + next_vehicle.velocity ** 2 + 2 * vehicle.comfortable_deceleration
+                                      * max(vehicle.gap - self.MINIMUM_GAP, 0))))
 
         new_velocity = min(velocity_safe, min(vehicle.velocity + vehicle.max_acceleration * self.delta_t,
                                               vehicle.desired_velocity))
