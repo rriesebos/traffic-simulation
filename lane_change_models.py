@@ -15,7 +15,7 @@ class MOBIL:
         self.right_bias = right_bias
 
     def will_change_lane(self, vehicle, new_lane, old_next_vehicle: Vehicle, new_next_vehicle: Vehicle,
-                         old_prev_vehicle: Vehicle, new_prev_vehicle: Vehicle, delta_t):
+                         old_prev_vehicle: Vehicle, new_prev_vehicle: Vehicle):
         traffic_model = vehicle.traffic_model
 
         if new_prev_vehicle is not None:

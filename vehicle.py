@@ -80,12 +80,12 @@ class Vehicle:
         self.update_velocity(delta_t)
         self.update_position(delta_t)
 
-    def will_change_lane(self, new_lane, new_next_vehicle, new_prev_vehicle, delta_t):
+    def will_change_lane(self, new_lane, new_next_vehicle, new_prev_vehicle):
         if self.lane_change_model is None:
             return False
 
         return self.lane_change_model.will_change_lane(self, new_lane, self.next_vehicle, new_next_vehicle,
-                                                       self.prev_vehicle, new_prev_vehicle, delta_t)
+                                                       self.prev_vehicle, new_prev_vehicle)
 
     def change_lane(self, new_next_vehicle, new_prev_vehicle, new_lane):
         self.next_vehicle = new_next_vehicle
