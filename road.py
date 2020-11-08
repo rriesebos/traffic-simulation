@@ -1,5 +1,5 @@
 from vehicle_factory import VehicleFactory
-from vehicle import Obstacle
+from vehicle import *
 import random
 
 
@@ -35,22 +35,22 @@ class Road:
 
         self.removed_vehicle_count = 0
 
-    def update(self):
+    def update(self, time):
         self.update_accelerations()
-        self.change_lanes()
+        self.change_lanes(time)
         self.update_positions_velocities()
 
         self.sort_vehicles()
 
-        self.generate_new_vehicles()
+        self.generate_new_vehicles(time)
 
     def update_accelerations(self):
         for vehicle in self.vehicles:
             vehicle.update_acceleration()
 
-    def change_lanes(self):
+    def change_lanes(self, time):
         for i, vehicle in enumerate(self.vehicles):
-            if vehicle.lane_change_model is None:
+            if vehicle.lane_change_model is None or isinstance(vehicle, Obstacle):
                 continue
 
             # Note: lanes are indexed from left to right
@@ -63,14 +63,14 @@ class Road:
                 new_next_vehicle = self.get_next_vehicle(new_lane, i)
                 new_prev_vehicle = self.get_prev_vehicle(new_lane, i)
 
-                if vehicle.will_change_lane(new_lane, new_next_vehicle, new_prev_vehicle, self.time_step):
+                if vehicle.will_change_lane(new_lane, new_next_vehicle, new_prev_vehicle, time):
                     if vehicle.prev_vehicle is not None:
                         vehicle.prev_vehicle.next_vehicle = vehicle.next_vehicle
 
                     if vehicle.next_vehicle is not None:
                         vehicle.next_vehicle.prev_vehicle = vehicle.prev_vehicle
 
-                    vehicle.change_lane(new_next_vehicle, new_prev_vehicle, new_lane)
+                    vehicle.change_lane(new_next_vehicle, new_prev_vehicle, new_lane, time)
 
                     if new_prev_vehicle is not None:
                         new_prev_vehicle.next_vehicle = vehicle
@@ -81,22 +81,22 @@ class Road:
                     break
 
     def update_positions_velocities(self):
-        vehicle_indices_to_delete = []
-        for i in range(len(self.vehicles)):
-            vehicle = self.vehicles[i]
+        vehicles_to_delete = []
+        for i, vehicle in enumerate(self.vehicles):
             vehicle.update_position(self.time_step)
 
             if vehicle.position > self.length:
-                vehicle_indices_to_delete.append(i)
+                vehicles_to_delete.append(vehicle)
                 continue
 
             vehicle.update_velocity(self.time_step)
 
-        self.removed_vehicle_count += len(vehicle_indices_to_delete)
+        self.removed_vehicle_count += len(vehicles_to_delete)
 
         # Remove vehicles from road that reached the end of the road
-        for i in vehicle_indices_to_delete:
-            del self.vehicles[i]
+        for vehicle in vehicles_to_delete:
+            vehicle.prev_vehicle.next_vehicle = None
+            self.vehicles.remove(vehicle)
 
     def sort_vehicles(self):
         self.vehicles.sort(key=lambda x: x.position, reverse=True)
@@ -134,7 +134,7 @@ class Road:
 
         return None
 
-    def generate_new_vehicles(self):
+    def generate_new_vehicles(self, time):
         if self.vehicle_factory is None:
             return
 
@@ -144,6 +144,7 @@ class Road:
 
             new_vehicle = self.vehicle_factory.create_random_vehicle()
             new_vehicle.lane = lane
+            new_vehicle.last_lane_change_time = time
 
             next_vehicle = self.get_next_vehicle(lane, len(self.vehicles))
 
@@ -171,8 +172,10 @@ class Road:
         if not 0 <= at_position <= self.length:
             return -1
 
-        vehicles_passed_point = (sum(vehicle.position > at_position for vehicle in self.vehicles)
+        vehicles_passed_point = (sum(vehicle.position > at_position for vehicle in self.vehicles
+                                     if not isinstance(vehicle, Obstacle))
                                  + self.removed_vehicle_count)
+
         return vehicles_passed_point / (current_time / 3600)
 
     def add_obstacle(self, lane, at_position):
@@ -197,3 +200,30 @@ class Road:
 
         self.vehicles.append(obstacle)
         self.sort_vehicles()
+
+    def remove_obstacle(self, lane, at_position):
+        if not 0 <= lane < self.num_lanes:
+            return
+
+        if self.vehicles:
+            obstacle = None
+            for i, vehicle in enumerate(self.vehicles):
+                if isinstance(vehicle, Obstacle) and vehicle.position == at_position and vehicle.lane == lane:
+                    if vehicle.prev_vehicle is not None:
+                        vehicle.prev_vehicle.next_vehicle = vehicle.next_vehicle
+
+                    if vehicle.next_vehicle is not None:
+                        vehicle.next_vehicle.prev_vehicle = vehicle.prev_vehicle
+
+                    break
+
+            if obstacle is not None:
+                self.vehicles.remove(obstacle)
+
+    def vehicle_density(self):
+        vehicles_count = len([vehicle for vehicle in self.vehicles if not isinstance(vehicle, Obstacle)])
+
+        if vehicles_count == 0:
+            return 0
+
+        return vehicles_count / self.length

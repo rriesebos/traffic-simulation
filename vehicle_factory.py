@@ -41,3 +41,31 @@ class VehicleFactory:
 
         return [self.create_vehicle(vehicle_type, traffic_model, lane_change_model)
                 for vehicle_type in random_vehicle_types]
+
+    def create_random_vehicle_row(self, num, spacing, lane=0, traffic_model=None, lane_change_model=None):
+        vehicles = self.create_random_vehicles(num, traffic_model, lane_change_model)
+
+        pos = 0
+        for i in range(num - 1, -1, -1):
+            vehicle = vehicles[i]
+
+            if i + 1 < num:
+                prev_vehicle = vehicles[i + 1]
+                vehicle.prev_vehicle = prev_vehicle
+
+            next_vehicle_length = 0
+            if i - 1 >= 0:
+                next_vehicle = vehicles[i - 1]
+                next_vehicle_length = next_vehicle.length
+                vehicle.next_vehicle = next_vehicle
+
+            vehicle.position = pos
+            vehicle.lane = lane
+
+            pos += spacing + next_vehicle_length
+
+        for vehicle in vehicles:
+            vehicle.update_gap()
+
+        return vehicles
+

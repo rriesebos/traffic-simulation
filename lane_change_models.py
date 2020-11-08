@@ -1,9 +1,12 @@
-from vehicle import Vehicle
+from vehicle import *
 
 
 class MOBIL:
     DEFAULT_POLITENESS_FACTOR = 0.5
     DEFAULT_RIGHT_BIAS = 0
+
+    # Time before another lane change is allowed
+    MIN_LAST_CHANGE_DELTA = 30
 
     """
     Args:
@@ -15,9 +18,12 @@ class MOBIL:
         self.right_bias = right_bias
 
     def will_change_lane(self, vehicle, new_lane, old_next_vehicle: Vehicle, new_next_vehicle: Vehicle,
-                         old_prev_vehicle: Vehicle, new_prev_vehicle: Vehicle, delta_t):
-        traffic_model = vehicle.traffic_model
+                         old_prev_vehicle: Vehicle, new_prev_vehicle: Vehicle, time):
+        # Do not changes lanes if the vehicle 'just'  changed lanes
+        if time - vehicle.last_lane_change_time < self.MIN_LAST_CHANGE_DELTA:
+            return False
 
+        traffic_model = vehicle.traffic_model
         if new_prev_vehicle is not None:
             # Check if gap to new previous vehicle is sufficient
             if new_prev_vehicle.calculate_gap(vehicle) < traffic_model.MINIMUM_GAP:
@@ -31,6 +37,10 @@ class MOBIL:
         # Check if gap to new next vehicle is sufficient
         if new_next_vehicle is not None and vehicle.calculate_gap(new_next_vehicle) < traffic_model.MINIMUM_GAP:
             return False
+
+        # Avoid obstacles
+        if isinstance(old_next_vehicle, Obstacle) and isinstance(new_next_vehicle, Obstacle):
+            return vehicle.calculate_gap(new_next_vehicle) >= vehicle.calculate_gap(old_next_vehicle)
 
         # Safety criterion: lane changing should not lead to dangerous deceleration
         new_acc = traffic_model.calculate_acceleration(vehicle, new_next_vehicle)
