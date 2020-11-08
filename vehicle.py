@@ -164,6 +164,21 @@ class Obstacle(Vehicle):
         comfortable_deceleration=0
     )
 
+    def update_position(self, delta_t):
+        return self.position
+
+    def update_velocity(self, delta_t):
+        return 0
+
+    def update_acceleration(self):
+        return 0
+
+    def calculate_gap(self, next_vehicle):
+        return 0
+
+    def will_change_lane(self, new_lane, new_next_vehicle, new_prev_vehicle):
+        return False
+
     def __init__(self, position=0, velocity=OBSTACLE_PARAMETERS.desired_velocity, traffic_model=None,
                  lane_change_model=None, next_vehicle=None, prev_vehicle=None, lane=0):
         super().__init__(position, velocity, self.OBSTACLE_PARAMETERS, traffic_model,

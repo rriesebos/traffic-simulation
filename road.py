@@ -50,7 +50,7 @@ class Road:
 
     def change_lanes(self):
         for i, vehicle in enumerate(self.vehicles):
-            if vehicle.lane_change_model is None:
+            if vehicle.lane_change_model is None or isinstance(vehicle, Obstacle):
                 continue
 
             # Note: lanes are indexed from left to right
