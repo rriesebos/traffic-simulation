@@ -63,14 +63,14 @@ def plot(time_range, velocities, accelerations, positions, gap, lanes, labels, t
 def main():
     traffic_model = IDM()
     mobil_model = MOBIL(right_bias=0.6)
-    vehicle_factory = VehicleFactory(weights=[0, 0, 0, 1.0],
+    vehicle_factory = VehicleFactory(weights=[1.0, 0, 0, 0],
                                      default_traffic_model=traffic_model,
                                      default_lane_change_model=mobil_model)
 
-    vehicle_list = vehicle_factory.create_random_vehicle_row(num=5, spacing=200, lane=1)
+    vehicle_list = vehicle_factory.create_random_vehicle_row(num=5, spacing=200, lane=0)
     road = Road(length=200000, num_lanes=NUM_LANES, vehicles=vehicle_list, time_step=TIME_STEP)
 
-    road.add_obstacle(1, 5000)
+    road.add_obstacle(0, 5000)
 
     velocities = []
     accelerations = []
