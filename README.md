@@ -5,14 +5,14 @@
 In this section the implementation of the traffic model is explained and the most important features are highlighted. The traffic simulation is implemented in Python.
 
 ### Longitudinal models
-Two longitudinal car-following models were implemented: the Intelligent Driven Model (IDM) [[1]](#1) and Gipps' model [[2]](#2). These models are classified as longitudinal because they are only concerned with the length-wise characteristic of traffic modelling, i.e. they only control the acceleration and deceleration (negative acceleration) of vehicles. As these models are both car-following models, the acceleration for the next time-step solely depends on the vehicle in consideration and the next vehicle on the road (referred to as the leading vehicle/leader). This leads to both models only having one method, with the following signature:
+Two longitudinal car-following models were implemented: the Intelligent Driven Model (IDM) [^1] and Gipps' model [^2]. These models are classified as longitudinal because they are only concerned with the length-wise characteristic of traffic modelling, i.e. they only control the acceleration and deceleration (negative acceleration) of vehicles. As these models are both car-following models, the acceleration for the next time-step solely depends on the vehicle in consideration and the next vehicle on the road (referred to as the leading vehicle/leader). This leads to both models only having one method, with the following signature:
 ```
 calculate_acceleration(self, vehicle: Vehicle, next_vehicle: Vehicle)
 ```
 This function will calculate and return the new acceleration.
 
 ### Lane changing model
-To account for vehicles wanting to move in the crosswise direction, i.e. change lane, the MOBIL lane changing model [[3]](#3) is used. This model decides if a vehicle wants to change lanes based on two criteria:
+To account for vehicles wanting to move in the crosswise direction, i.e. change lane, the MOBIL lane changing model [^3] is used. This model decides if a vehicle wants to change lanes based on two criteria:
 - the potential new target lane is more attractive (incentive criterion),
 - the change can be performed safely (safety criterion). 
 
@@ -111,15 +111,8 @@ Looking at [simulation.py](https://github.com/rriesebos/traffic-simulation/blob/
 
 After setting up the simulation, we have a time loop to perform the simulation. In each iteration of this loop the `update()` method is called on the road, and traffic properties are stored to use in a visualisation step after the time loop.
 
-## References
-<a id="1">[1]</a>
-M. Treiber, A. Hennecke, and D. Helbing. Congested traffic states in
-empirical observations and microscopic simulations. Physical review E,
-62(2):1805, 2000.
+[^1]: M. Treiber, A. Hennecke, and D. Helbing. Congested traffic states in empirical observations and microscopic simulations. _Physical review E_, 62(2):1805, 2000.
 
-<a id="2">[2]</a>
-P. G. Gipps. A behavioural car-following model for computer simulation.
-Transportation Research Part B: Methodological, 15(2):105–111, 1981.
+[^2]: P. G. Gipps. A behavioural car-following model for computer simulation. _Transportation Research Part B: Methodological_, 15(2):105–111, 1981.
 
-<a id="3">[3]</a>
-M. Treiber and D. Helbing. MOBIL: General lane-changing model for carfollowing models. Disponıvel Acesso Dezembro, 2016.
+[^3]: M. Treiber and D. Helbing. MOBIL: General lane-changing model for carfollowing models. _Disponível Acesso Dezembro_, 2016.
